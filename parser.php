@@ -17,15 +17,13 @@ class DomParser
     private function getPageData()
     {
         if (empty($this->url) || !is_string($this->url)) {
-            echo "Please, set valid URL!";
-            exit();
+            throw new \ErrorException('Please, set valid URL!');
         }
 
         $page = file_get_html($this->url);
 
         if (!$page) {
-            echo "Can't get data from page. Please, check the entering URL and try again.";
-            exit();
+            throw new \ErrorException("Can't get data from page. Please, check the entering URL and try again.");
         }
 
         return $page;
@@ -64,7 +62,7 @@ class DomParser
         $this->page = $this->getPageData();
 
         if (!file_exists(__DIR__ . '\parsed_img')) {
-            mkdir(__DIR__ . '\parsed_img', 0777, true);
+            if(!mkdir(__DIR__ . '\parsed_img', 0777, true)){ throw new \ErrorException("Can't create new directory in: " . __DIR__); };
         }
 
         $countSavedImg = 0;
