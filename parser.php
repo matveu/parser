@@ -16,7 +16,7 @@ class DomParser
 
     private function getPageData()
     {
-        if (!empty($this->url) || !is_string($this->url)) {
+        if (empty($this->url) || !is_string($this->url)) {
             echo "Please, set valid URL!";
             exit();
         }
