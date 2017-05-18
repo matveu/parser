@@ -1,0 +1,31 @@
+{
+  "name": "matviichuk/parser",
+  "description": "Parse and save images",
+  "keywords": [
+    "img",
+    "parser"
+  ],
+  "type": "library",
+  "version": "1.0",
+  "license": "BSD-3-Clause",
+  "minimum-stability": "stable",
+  "require": {
+    "php": ">=5.4.0",
+    "shark/simple_html_dom": "dev-master"
+  },
+  "authors": [
+    {
+      "name": "Igor Matviichuk",
+      "email": "igor.matviichuk1990@gmail.com",
+      "homepage": "http://www.igormatviichuk.tk/"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "matveu\\parser\\": ""
+    }
+  },
+  "config": {
+    "process-timeout": 1800
+  }
+}
