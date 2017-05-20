@@ -2,8 +2,6 @@
 
 namespace matveu\parser;
 
-require '/vendor/autoload.php';
-
 class DomParser
 {
     private $page;
@@ -78,7 +76,7 @@ class DomParser
 
     public function run()
     {
-        echo "Starting..." . PHP_EOL;
+        echo "Starting..." , PHP_EOL;
 
         $this->getPageData();
         $this->createDir();
@@ -87,21 +85,21 @@ class DomParser
         $countSavedImg = 0;
 
         foreach ($this->page->find('img') as $img) {
-            if (empty($img->src)){ echo "Image src is empty." . PHP_EOL; continue;}
+            if (empty($img->src)){ echo "Image src is empty." , PHP_EOL; continue;}
 
             $img->src = $this->makeCorrectSrc($img->src);
 
-            if (!$this->curlGetContents($img->src)){ echo "Image src is wrong: $img->src" . PHP_EOL; continue;}
-            if (!array_key_exists((exif_imagetype($img->src)) ?: 0, self::IMAGE_TYPES)) { echo "Incorrect image type: $img->src" . PHP_EOL; continue;}
+            if (!$this->curlGetContents($img->src)){ echo "Image src is wrong: $img->src" , PHP_EOL; continue;}
+            if (!array_key_exists((exif_imagetype($img->src)) ?: 0, self::IMAGE_TYPES)) { echo "Incorrect image type: $img->src" , PHP_EOL; continue;}
 
             $imagePath = "\\parsed_img\\" . bin2hex(openssl_random_pseudo_bytes(10)) . self::IMAGE_TYPES[exif_imagetype($img->src)];
 
-            if (!file_put_contents(__DIR__ . $imagePath, $this->curlGetContents($img->src), FILE_APPEND | LOCK_EX)) { echo "Can't write image to file: $img->src" . PHP_EOL; continue;}
+            if (!file_put_contents(__DIR__ . $imagePath, $this->curlGetContents($img->src), FILE_APPEND | LOCK_EX)) { echo "Can't write image to file: $img->src" , PHP_EOL; continue;}
 
             $countSavedImg += 1;
         }
 
-        echo "Total saved images: $countSavedImg" . PHP_EOL;
-        echo "Directory: " . __DIR__ . "\\parsed_img" . PHP_EOL;
+        echo "Total saved images: $countSavedImg" , PHP_EOL;
+        echo "Directory: " . __DIR__ . "\\parsed_img" , PHP_EOL;
     }
 }
