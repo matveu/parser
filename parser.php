@@ -17,6 +17,51 @@ class DomParser
         IMAGETYPE_PNG
     ];
 
+    public function __construct($url)
+    {
+        if (empty($url) || !is_string($url)) {
+            throw new \ErrorException('Please, set valid URL!');
+        }
+
+        $this->url = $url;
+        $this->init();
+    }
+
+    private function init()
+    {
+        $this->parseUrl();
+        $this->createFolder();
+    }
+
+    private function getPageData()
+    {
+        $page = file_get_html($this->url);
+
+        if (!$page) {
+            throw new \ErrorException("Can't get data from page: $this->url");
+        }
+
+        $this->page = $page;
+    }
+
+    private function parseImages()
+    {
+        $qtySavedImg = 0;
+
+        foreach ($this->page->find('img') as $img) {
+            if (empty($img->src)) {
+                echo "Image src is empty.", PHP_EOL;
+                continue;
+            }
+
+            $img->src = $this->getAbsoluteSrc($img->src);
+
+            (!$this->createAndSaveImage($img->src)) ?: $qtySavedImg += 1;
+        }
+
+        echo "Number of saved images: $qtySavedImg", PHP_EOL;
+    }
+
     private function createAndSaveImage($filePath)
     {
         $type   = exif_imagetype($filePath);
@@ -45,33 +90,6 @@ class DomParser
 
         imagedestroy($img);
         return $status;
-    }
-
-    public function __construct($url)
-    {
-        if (empty($url) || !is_string($url)) {
-            throw new \ErrorException('Please, set valid URL!');
-        }
-
-        $this->url = $url;
-        $this->init();
-    }
-
-    private function init()
-    {
-        $this->parseUrl();
-        $this->createFolder();
-    }
-
-    private function getPageData()
-    {
-        $page = file_get_html($this->url);
-
-        if (!$page) {
-            throw new \ErrorException("Can't get data from page: $this->url");
-        }
-
-        $this->page = $page;
     }
 
     private function curlUrlExists($url)
@@ -114,34 +132,6 @@ class DomParser
         $this->pathToFolder = __DIR__ . '\parsed_img';
     }
 
-    private function parsePage()
-    {
-        echo "Starting... " . $this->url, PHP_EOL;
-
-        $this->visitedPages[] = $this->url;
-        $this->getPageData();
-        $this->parseImages();
-        $this->goToAnotherPage();
-    }
-
-    private function parseImages()
-    {
-        $qtySavedImg = 0;
-
-        foreach ($this->page->find('img') as $img) {
-            if (empty($img->src)) {
-                echo "Image src is empty.", PHP_EOL;
-                continue;
-            }
-
-            $img->src = $this->getAbsoluteSrc($img->src);
-
-            (!$this->createAndSaveImage($img->src)) ?: $qtySavedImg += 1;
-        }
-
-        echo "Number of saved images: $qtySavedImg", PHP_EOL;
-    }
-
     private function goToAnotherPage()
     {
         foreach ($this->page->find('a') as $link) {
@@ -162,6 +152,16 @@ class DomParser
         }
 
         return (!in_array($fullLink, $this->visitedPages)) ? (($this->curlUrlExists($fullLink)) ? $this->url = $fullLink : false) : false;
+    }
+
+    private function parsePage()
+    {
+        echo "Starting... " . $this->url, PHP_EOL;
+
+        $this->visitedPages[] = $this->url;
+        $this->getPageData();
+        $this->parseImages();
+        $this->goToAnotherPage();
     }
 
     public function run()
