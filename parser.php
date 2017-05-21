@@ -11,11 +11,41 @@ class DomParser
     private $visitedPages = [];
     private $pathToFolder;
 
-    const IMAGE_TYPES = [
-        IMAGETYPE_GIF  => '.gif',
-        IMAGETYPE_JPEG => '.jpg',
-        IMAGETYPE_PNG  => '.png'
+    const ALLOWED_IMAGE_TYPES = [
+        IMAGETYPE_GIF,
+        IMAGETYPE_JPEG,
+        IMAGETYPE_PNG
     ];
+
+    private function createAndSaveImage($filePath)
+    {
+        $type   = exif_imagetype($filePath);
+        $status = false;
+
+        if (!in_array($type, self::ALLOWED_IMAGE_TYPES)) {
+            return false;
+        }
+
+        $imageName = bin2hex(openssl_random_pseudo_bytes(10));
+
+        switch ($type) {
+            case IMAGETYPE_GIF :
+                $img    = imageCreateFromGif($filePath);
+                $status = imagegif($img, $this->pathToFolder . '\\' . $imageName . '.gif');
+                break;
+            case IMAGETYPE_JPEG :
+                $img    = imageCreateFromJpeg($filePath);
+                $status = imagejpeg($img, $this->pathToFolder . '\\' . $imageName . '.jpeg');
+                break;
+            case IMAGETYPE_PNG :
+                $img    = imageCreateFromPng($filePath);
+                $status = imagepng($img, $this->pathToFolder . '\\' . $imageName . '.png');
+                break;
+        }
+
+        imagedestroy($img);
+        return $status;
+    }
 
     public function __construct($url)
     {
@@ -42,19 +72,6 @@ class DomParser
         }
 
         $this->page = $page;
-    }
-
-    private function curlGetContents($imgSrc)
-    {
-        $ch = curl_init($imgSrc);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, 1);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
-        $data = curl_exec($ch);
-        curl_close($ch);
-
-        return $data;
     }
 
     private function curlUrlExists($url)
@@ -103,11 +120,11 @@ class DomParser
 
         $this->visitedPages[] = $this->url;
         $this->getPageData();
-        $this->saveImages();
+        $this->parseImages();
         $this->goToAnotherPage();
     }
 
-    private function saveImages()
+    private function parseImages()
     {
         $qtySavedImg = 0;
 
@@ -119,23 +136,7 @@ class DomParser
 
             $img->src = $this->getAbsoluteSrc($img->src);
 
-            if (!$this->curlGetContents($img->src)) {
-                echo "Image src is wrong: $img->src", PHP_EOL;
-                continue;
-            }
-            if (!array_key_exists((exif_imagetype($img->src)) ?: 0, self::IMAGE_TYPES)) {
-                echo "Incorrect image type: $img->src", PHP_EOL;
-                continue;
-            }
-
-            $imageName = bin2hex(openssl_random_pseudo_bytes(10)) . self::IMAGE_TYPES[exif_imagetype($img->src)];
-
-            if (!file_put_contents($this->pathToFolder . '\\' . $imageName, $this->curlGetContents($img->src), FILE_APPEND | LOCK_EX)) {
-                echo "Can't save image to folder: $img->src", PHP_EOL;
-                continue;
-            }
-
-            $qtySavedImg += 1;
+            (!$this->createAndSaveImage($img->src)) ?: $qtySavedImg += 1;
         }
 
         echo "Number of saved images: $qtySavedImg", PHP_EOL;
@@ -144,10 +145,7 @@ class DomParser
     private function goToAnotherPage()
     {
         foreach ($this->page->find('a') as $link) {
-            if (!$this->checkLink($link->href)) {
-                continue;
-            }
-            $this->parsePage();
+            (!$this->checkLink($link->href)) ?: $this->parsePage();
         }
     }
 
