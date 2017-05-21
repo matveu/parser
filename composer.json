@@ -1,9 +1,10 @@
 {
   "name": "matviichuk/parser",
-  "description": "Parse and save images",
+  "description": "Parse images from whole site and save locally",
   "keywords": [
-    "img",
-    "parser"
+    "image",
+    "parser",
+    "PHP"
   ],
   "type": "library",
   "version": "1.0",
