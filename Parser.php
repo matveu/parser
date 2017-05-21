@@ -179,8 +179,8 @@ class DomParser
 
     public function run()
     {
-        $this->parsePage();
-
         echo "Path to saved pictures: $this->pathToFolder", PHP_EOL;
+
+        $this->parsePage();
     }
 }
