@@ -41,10 +41,11 @@ class DomParser
 
     private function getPageData()
     {
-        $page = file_get_html($this->url);
-
-        if (!$page) {
-            throw new \ErrorException("Can't get data from page: $this->url");
+        try {
+            $page = file_get_html($this->url);
+        } catch (WarningException $e) {
+            echo "Can't get data from page: $this->url", PHP_EOL;
+            die();
         }
 
         $this->page = $page;
