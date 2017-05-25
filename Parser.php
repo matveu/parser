@@ -64,13 +64,13 @@ class DomParser
 
             $img->src = $this->getAbsoluteSrc($img->src);
 
-            (!$this->createAndSaveImage($img->src)) ?: $qtySavedImg += 1;
+            (!$this->saveImage($img->src)) ?: $qtySavedImg += 1;
         }
 
         echo "Number of saved images: $qtySavedImg", PHP_EOL;
     }
 
-    private function createAndSaveImage($filePath)
+    private function saveImage($filePath)
     {
         $status = false;
 
@@ -85,19 +85,20 @@ class DomParser
         }
 
         $imageName = bin2hex(openssl_random_pseudo_bytes(10));
+        $imagePath = $this->pathToFolder . DIRECTORY_SEPARATOR . $imageName;
 
         switch ($type) {
             case IMAGETYPE_GIF :
                 $img    = imageCreateFromGif($filePath);
-                $status = imagegif($img, $this->pathToFolder . '\\' . $imageName . '.gif');
+                $status = imagegif($img, $imagePath . '.gif');
                 break;
             case IMAGETYPE_JPEG :
                 $img    = imageCreateFromJpeg($filePath);
-                $status = imagejpeg($img, $this->pathToFolder . '\\' . $imageName . '.jpeg');
+                $status = imagejpeg($img, $imagePath . '.jpeg');
                 break;
             case IMAGETYPE_PNG :
                 $img    = imageCreateFromPng($filePath);
-                $status = imagepng($img, $this->pathToFolder . '\\' . $imageName . '.png');
+                $status = imagepng($img, $imagePath . '.png');
                 break;
         }
 
@@ -137,14 +138,15 @@ class DomParser
 
     private function createFolder()
     {
-        if (!file_exists(__DIR__ . '\parsed_img')) {
-            $mask = umask(0);
-            if (!mkdir(__DIR__ . '\parsed_img', 0777, true)) {
+        $folderPath = __DIR__ . DIRECTORY_SEPARATOR . 'parsed_img';
+        if (!file_exists($folderPath)) {
+            $mask   = umask(0);
+            if (!mkdir($folderPath, 0777, true)) {
                 throw new CreateFolderException(__DIR__);
             };
             umask($mask);
         }
-        $this->pathToFolder = __DIR__ . '\parsed_img';
+        $this->pathToFolder = $folderPath;
     }
 
     private function goToAnotherPage()
