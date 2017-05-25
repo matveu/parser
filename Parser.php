@@ -137,9 +137,11 @@ class DomParser
     private function createFolder()
     {
         if (!file_exists(__DIR__ . '\parsed_img')) {
+            $mask = umask(0);
             if (!mkdir(__DIR__ . '\parsed_img', 0777, true)) {
                 throw new \ErrorException("Can't create new folder in: " . __DIR__);
             };
+            umask($mask);
         }
         $this->pathToFolder = __DIR__ . '\parsed_img';
     }
