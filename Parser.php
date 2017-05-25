@@ -19,8 +19,6 @@ class DomParser
 
     public function __construct($url)
     {
-        set_error_handler([new WarningException(), 'warning']);
-
         try {
             if (empty($url) || !is_string($url)) {
                 throw new InvalidUrlException();
@@ -37,6 +35,8 @@ class DomParser
 
     private function init()
     {
+        set_error_handler([new WarningException(), 'warning']);
+
         $this->parseUrl();
         $this->createFolder();
     }
