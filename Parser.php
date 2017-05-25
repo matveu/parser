@@ -2,12 +2,6 @@
 
 namespace matveu\parser;
 
-set_error_handler(function ($errno, $errstr) {
-    if ($errno == E_WARNING) {
-        throw new WarningException($errstr);
-    }
-}, E_ALL);
-
 class DomParser
 {
     private $page;
@@ -25,12 +19,20 @@ class DomParser
 
     public function __construct($url)
     {
-        if (empty($url) || !is_string($url)) {
-            throw new \ErrorException('Please, set valid URL!');
-        }
+        set_error_handler([new WarningException(), 'warning']);
 
-        $this->url = $url;
-        $this->init();
+        try {
+            if (empty($url) || !is_string($url)) {
+                throw new InvalidUrlException();
+            }
+
+            $this->url = $url;
+            $this->init();
+        } catch (InvalidUrlException $e) {
+            echo $e->getMessage();die();
+        } catch (CreateFolderException $e) {
+            echo $e->getMessage();die();
+        }
     }
 
     private function init()
@@ -44,8 +46,7 @@ class DomParser
         try {
             $page = file_get_html($this->url);
         } catch (WarningException $e) {
-            echo "Can't get data from page: $this->url", PHP_EOL;
-            die();
+            echo "Can't get data from page: $this->url";die();
         }
 
         $this->page = $page;
@@ -139,7 +140,7 @@ class DomParser
         if (!file_exists(__DIR__ . '\parsed_img')) {
             $mask = umask(0);
             if (!mkdir(__DIR__ . '\parsed_img', 0777, true)) {
-                throw new \ErrorException("Can't create new folder in: " . __DIR__);
+                throw new CreateFolderException(__DIR__);
             };
             umask($mask);
         }
