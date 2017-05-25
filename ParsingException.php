@@ -9,7 +9,7 @@ class WarningException extends Exception
     public function warning($errno, $errstr)
     {
         if ($errno == E_WARNING) {
-            throw new WarningException($errstr);
+            throw new self($errstr);
         }
     }
 }
